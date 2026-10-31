@@ -1,0 +1,8 @@
+/target/
+/.maven-cache/
+/.maven-user/
+/.idea/
+*.iml
+*.log
+.env
+/.local/
