@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Учебные измерения | Помощник по бронированию</title>
+  <link rel="stylesheet" href="/style.css">
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Помощник по бронированию аудиторий · Лабораторная работа 2</p>
+    <h1>Учебные измерения занятости</h1>
+    <p>Программа последовательно читает подготовленные значения из CSV, округляет их и считает скользящее среднее.</p>
+    <p id="settings-info" class="muted">Одна запись в секунду. Округление до целого. Среднее последних 3 значений. В таблице последние 10 результатов.</p>
+    <div class="controls">
+      <button id="start" disabled>Старт</button>
+      <button id="stop" class="secondary" disabled>Стоп</button>
+      <button id="reset" class="secondary" disabled>Сброс</button>
+      <span id="status" role="status">Подключение...</span>
+    </div>
+    <p id="message" role="alert" hidden></p>
+    <div class="table-wrap" tabindex="0" aria-label="Таблица измерений с прокруткой">
+      <table>
+        <thead><tr><th scope="col">№</th><th scope="col">Время, с</th><th scope="col">Из файла, %</th><th scope="col">Округление, %</th><th scope="col">Среднее, %</th></tr></thead>
+        <tbody id="measurements"><tr><td colspan="5" class="empty">Нажмите «Старт», чтобы получить данные.</td></tr></tbody>
+      </table>
+    </div>
+    <p id="source-info" class="muted"></p>
+    <p class="note">Время отсчитывается от первой записи файла. «Стоп» приостанавливает чтение, «Старт» продолжает его. Для повтора нажмите «Сброс» после остановки.</p>
+    <p class="note">Данные учебные и не определяют доступность аудитории для бронирования. Результаты хранятся в памяти до сброса или перезапуска.</p>
+  </main>
+</body>
+</html>
