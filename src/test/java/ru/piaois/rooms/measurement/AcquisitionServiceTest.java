@@ -15,7 +15,7 @@ class AcquisitionServiceTest {
 
     AcquisitionServiceTest() throws java.io.IOException {
         service = new AcquisitionService(new CsvMeasurementSource(
-                java.nio.file.Files.newBufferedReader(java.nio.file.Path.of("data/occupancy.csv"))), "occupancy.csv");
+                java.nio.file.Files.newBufferedReader(java.nio.file.Path.of("src/test/resources/occupancy-arithmetic.csv"))), "occupancy.csv");
     }
 
     @AfterEach

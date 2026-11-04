@@ -22,7 +22,9 @@ public class BookingService {
         new Document(2,"Отмена брони","Памятка участника", "Участник может отменить только собственную активную бронь.",Role.MEMBER));
     private final Map<Long,Booking> bookings = new LinkedHashMap<>();
     private long nextId = 3;
-    public BookingService() {
+    public BookingService() { resetDemo(); }
+    public synchronized void resetDemo() {
+        bookings.clear(); nextId = 3;
         bookings.put(1L,new Booking(1,2,1,Instant.parse("2026-10-15T10:00:00Z"),Instant.parse("2026-10-15T11:00:00Z"),10,"Учебное занятие",Status.ACTIVE));
         bookings.put(2L,new Booking(2,2,2,Instant.parse("2026-10-15T11:00:00Z"),Instant.parse("2026-10-15T12:00:00Z"),15,"Семинар",Status.ACTIVE));
     }
@@ -61,6 +63,7 @@ public class BookingService {
     public synchronized List<Booking> ownBookings(User user) {
         requireUser(user); return bookings.values().stream().filter(b -> b.ownerId()==user.id()).toList();
     }
+    public boolean hasRoom(long id) { return rooms.stream().anyMatch(r -> r.id()==id); }
     private boolean conflicts(long room,Instant start,Instant end) {
         return bookings.values().stream().anyMatch(b -> b.roomId()==room && b.status()==Status.ACTIVE && start.isBefore(b.end()) && end.isAfter(b.start()));
     }
@@ -71,7 +74,7 @@ public class BookingService {
     private static void requireUser(User user) {
         if (user==null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Требуется вход");
     }
-    private static void requireMember(User user) {
+    static void requireMember(User user) {
         requireUser(user); if(user.role()!=Role.MEMBER) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Требуется роль MEMBER");
     }
 }

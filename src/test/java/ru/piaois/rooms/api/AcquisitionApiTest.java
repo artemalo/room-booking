@@ -17,7 +17,7 @@ import java.net.http.HttpResponse;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "measurements.source=file:src/test/resources/occupancy-arithmetic.csv")
 class AcquisitionApiTest {
     @LocalServerPort int port;
     @Autowired AcquisitionService service;
@@ -32,7 +32,7 @@ class AcquisitionApiTest {
 
     @Test
     void servesPageAndMeasurementJson() throws Exception {
-        assertTrue(send("GET", "/", null).body().contains("Учебные измерения занятости"));
+        assertTrue(send("GET", "/", null).body().contains("Найти аудиторию для занятия"));
         var response = send("POST", "/api/acquisition/samples?count=3", null);
         assertEquals(200, response.statusCode());
         JsonNode body = json(response);
