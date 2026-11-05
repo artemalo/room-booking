@@ -1,34 +1,22 @@
 <!doctype html>
 <html lang="ru">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Учебные измерения | Помощник по бронированию</title>
-  <link rel="stylesheet" href="/style.css">
-  <script defer src="/app.js"></script>
-</head>
-<body>
-  <main>
-    <p class="eyebrow">Помощник по бронированию аудиторий · Лабораторная работа 2</p>
-    <h1>Учебные измерения занятости</h1>
-    <p>Программа последовательно читает подготовленные значения из CSV, округляет их и считает скользящее среднее.</p>
-    <p id="settings-info" class="muted">Одна запись в секунду. Округление до целого. Среднее последних 3 значений. В таблице последние 10 результатов.</p>
-    <div class="controls">
-      <button id="start" disabled>Старт</button>
-      <button id="stop" class="secondary" disabled>Стоп</button>
-      <button id="reset" class="secondary" disabled>Сброс</button>
-      <span id="status" role="status">Подключение...</span>
-    </div>
-    <p id="message" role="alert" hidden></p>
-    <div class="table-wrap" tabindex="0" aria-label="Таблица измерений с прокруткой">
-      <table>
-        <thead><tr><th scope="col">№</th><th scope="col">Время, с</th><th scope="col">Из файла, %</th><th scope="col">Округление, %</th><th scope="col">Среднее, %</th></tr></thead>
-        <tbody id="measurements"><tr><td colspan="5" class="empty">Нажмите «Старт», чтобы получить данные.</td></tr></tbody>
-      </table>
-    </div>
-    <p id="source-info" class="muted"></p>
-    <p class="note">Время отсчитывается от первой записи файла. «Стоп» приостанавливает чтение, «Старт» продолжает его. Для повтора нажмите «Сброс» после остановки.</p>
-    <p class="note">Данные учебные и не определяют доступность аудитории для бронирования. Результаты хранятся в памяти до сброса или перезапуска.</p>
-  </main>
-</body>
-</html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Помощник по бронированию аудиторий</title><link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script></head>
+<body><main>
+<header><p class="eyebrow">Лабораторная работа 2 | Демонстрация</p><h1>Найти аудиторию для занятия</h1><p>Свободное время определяют брони. Учебный источник помогает оценить состояние помещения сейчас.</p><p id="clock" class="muted">Модельное время: загрузка…</p></header>
+<section aria-labelledby="account-title"><h2 id="account-title">Учётная запись</h2>
+<form id="login-form" class="row"><label>Логин<input id="login" autocomplete="username" required></label><label>Пароль<input id="password" type="password" autocomplete="current-password" required></label><button>Войти</button></form>
+<p class="muted">Учебный вход: reader - просмотр; member - просмотр и бронирование.</p><div class="row"><span id="account">Вы не вошли.</span><button id="logout" class="secondary" hidden>Выйти</button></div></section>
+<p id="message" role="alert" hidden></p><p id="notice" role="status" hidden></p>
+<div id="workspace" hidden>
+<section aria-labelledby="search-title"><h2 id="search-title">Поиск аудитории</h2><form id="search-form">
+<div class="row"><label>Начало занятия<select id="mode"><option value="now">Начать сейчас</option><option value="at">Выбрать время</option></select></label><label id="date-label" hidden>Начало (Москва, UTC+3)<input id="date" type="datetime-local" value="2026-10-15T13:00"></label><label>Длительность, минут<input id="duration" type="number" min="1" max="120" step="1" value="30" required></label><label>Участников<input id="participants" type="number" min="1" step="1" value="10" required></label><button>Найти аудитории</button></div></form>
+<p class="muted">До двух часов. «Сейчас» - время воспроизводимого CSV. Состояние комнат показано на момент поиска; для обновления нажмите «Найти аудитории».</p><p id="search-summary" role="status">Задайте условия поиска. Для обновления состояния нажмите «Найти аудитории» ещё раз.</p><div id="rooms" class="cards"></div></section>
+<section id="room-details" hidden aria-labelledby="room-title"><h2 id="room-title"></h2><p id="room-advice"></p><p id="room-explanation" class="muted"></p>
+<form id="booking-form"><label>Цель занятия<input id="purpose" maxlength="200" required placeholder="Например, подготовка к семинару"></label><label id="ack-label" class="check" hidden><input id="ack" type="checkbox">Я учёл предупреждение о возможном присутствии людей и проверю помещение</label><p id="booking-note" class="muted"></p><button id="book">Подтвердить бронь</button></form><p id="reader-note" hidden>READER может просматривать аудитории и правила. Для создания и отмены брони войдите как MEMBER.</p>
+<details id="measurement-details"><summary>Подробности измерений выбранной аудитории</summary><p id="source-info" class="muted"></p><p id="settings-info" class="muted"></p><div class="table-wrap" tabindex="0" role="region" aria-label="Таблица последних измерений с прокруткой"><table><thead><tr><th>№</th><th>Время (Москва)</th><th>Из файла, %</th><th>Округление, %</th><th>Среднее, %</th></tr></thead><tbody id="measurements"></tbody></table></div><p class="muted">Процент - учебная оценка доли занятых мест. После остановки таблица остаётся историей, а подсказка теряет актуальность.</p></details></section>
+<section aria-labelledby="bookings-title"><div class="row spread"><h2 id="bookings-title">Мои брони</h2><button id="refresh-bookings" class="secondary">Обновить брони</button></div><div id="bookings"></div></section>
+<section aria-labelledby="rules-title"><h2 id="rules-title">Правила</h2><form id="rules-form" class="row"><label class="grow">Слово или фраза<input id="query" maxlength="200" required placeholder="Например, бронирование"></label><button>Найти правила</button></form><div id="documents" aria-live="polite"></div></section>
+</div>
+<details class="demo"><summary>Демонстрация источника</summary><p>CSV аудитории 101: пусто -> вход людей -> занятие -> выход. Одна запись в секунду, всего 60.</p><div class="row"><button id="start" disabled>Старт</button><button id="stop" class="secondary" disabled>Стоп</button><button id="reset" class="secondary" disabled>Сброс демонстрации</button><span id="status" role="status">Подключение…</span></div><p class="muted">Старт продолжает файл с новым окном среднего. Сброс очищает измерения, возвращает модельное время и восстанавливает исходные брони, удаляя созданные в демонстрации.</p><div id="reset-confirm" hidden><p>Вернуть исходные измерения и брони?</p><button id="confirm-reset">Да, сбросить демонстрацию</button> <button id="keep-demo" class="secondary">Оставить как есть</button></div></details>
+<footer>Учебные данные хранятся в памяти до сброса или перезапуска сервера.</footer>
+</main></body></html>
