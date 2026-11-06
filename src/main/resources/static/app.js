@@ -99,8 +99,10 @@ function renderSource(data){source=data;$('status').textContent=data.running?'И
 function renderMeasurements(){if(!source||!selected)return;const same=source.roomId===selected;
   $('source-info').textContent=same?`Источник: ${source.sourceName}. Прочитано ${source.generated} из ${source.totalRecords}.`:'Для этой аудитории источник не подключён. Измерений нет.';
   $('settings-info').textContent=same?`Период ${source.settings.samplePeriodMs/1000} с | округление ${source.settings.quantumPercent}% | окно ${source.settings.averagingWindow} | буфер ${source.settings.bufferCapacity}`:'';
+  const scroll=$('measurements').closest('.table-wrap'), scrollTop=scroll.scrollTop, scrollLeft=scroll.scrollLeft;
   $('measurements').replaceChildren();for(const m of same?source.measurements:[]){const tr=document.createElement('tr');for(const v of [m.sequence,time(m.measuredAt),number(m.sourceValue),number(m.rawValue),number(m.filteredValue)])tr.append(text('td',v));$('measurements').append(tr);}
   if(!same||!source.measurements.length){const tr=document.createElement('tr'),td=text('td',same?'Измерений пока нет. Откройте «Демонстрация источника» и нажмите «Старт».':'Нет измерений.');td.colSpan=5;tr.append(td);$('measurements').append(tr);}
+  scroll.scrollTop=scrollTop;scroll.scrollLeft=scrollLeft;
 }
 async function reloadSearch(){if(criteria){result=await request(searchPath(criteria));renderSearch();}}
 async function sourceAction(name){renderSource(await request('acquisition/'+name,'POST'));if(name==='reset')await reloadSearch();}
