@@ -48,7 +48,7 @@ $('search-form').onsubmit=event=>{event.preventDefault();act(async()=>{
 });};
 function renderSearch() {
   if(!result)return;
-  $('clock').textContent=`Демонстрация | модельное время: ${time(result.demoTime)} (Москва)`;
+  $('clock').textContent=`Модельное время: ${time(result.demoTime)} (Москва)`;
   $('search-summary').textContent=`${time(result.start)} - ${time(result.end)} (Москва) | ${criteria.participants} участников. ${result.rooms.length?'Найдено: '+result.rooms.length:'Подходящих аудиторий нет. Измените время или число участников.'}`;
   const key=JSON.stringify([selected,result.rooms.map(o=>[o.room,o.currentUse.state,o.currentUse.label,o.recommended,o.explanation])]);
   if(key!==cardsKey){
@@ -80,7 +80,17 @@ $('booking-form').onsubmit=event=>{event.preventDefault();act(async()=>{
   const purpose=$('purpose').value.trim();if(!purpose)throw new Error('Укажите цель занятия.');
   let created;
   try {created=await request('booking/bookings'+(criteria.now?'/now':''),'POST',criteria.now?{roomId:selected,durationMinutes:criteria.minutes,participants:criteria.participants,purpose,acknowledgePresence:$('ack').checked}:{roomId:selected,start:criteria.start,end:criteria.end,participants:criteria.participants,purpose});}
-  catch(error){if(criteria.now&&error.message.includes('Подтвердите ознакомление')){forcedWarning=true;$('ack').checked=false;renderSelected();}throw error;}
+  catch(error){
+    if(criteria.now&&error.message.includes('Подтвердите ознакомление')){
+      $('ack').checked=false;
+      try {await reloadSearch();}
+      catch {resetSearch();throw new Error('Состояние аудитории изменилось, но обновить результаты не удалось. Повторите поиск.');}
+      if(!selected)throw new Error('Аудитория больше недоступна. Выберите другую комнату.');
+      const current=result.rooms.find(offer=>offer.room.id===selected);
+      if(current.currentUse.state!=='PRESENT')throw new Error('Состояние аудитории изменилось. Проверьте обновлённые сведения и подтвердите бронь заново.');
+    }
+    throw error;
+  }
   const booking=created.booking||created;selected=null;$('purpose').value='';$('ack').checked=false;forcedWarning=false;
   await loadBookings();await reloadSearch();message(`Бронь №${booking.id} создана: ${time(booking.start)} - ${time(booking.end)} (Москва).${created.warning?' '+created.warning:''}`,true);
 });};
@@ -93,7 +103,7 @@ function renderBookings(items){$('bookings').replaceChildren();if(!items.length)
 $('refresh-bookings').onclick=()=>act(loadBookings);
 $('rules-form').onsubmit=event=>{event.preventDefault();act(async()=>{const query=$('query').value.trim();if(!query)throw new Error('Введите слово или фразу для поиска правил.');const items=await request('booking/documents?'+new URLSearchParams({query}));$('documents').replaceChildren();if(!items.length)$('documents').append(text('p','Доступные правила по этому запросу не найдены.','muted'));for(const d of items){const article=document.createElement('article');article.append(text('h3',d.title),text('p',d.excerpt),text('p',d.source,'muted'));$('documents').append(article);}});};
 function renderSource(data){source=data;$('status').textContent=data.running?'Идёт чтение файла':data.completed?'Файл прочитан':'Чтение остановлено';
-  const last=data.measurements.at(-1);$('clock').textContent=`Демонстрация | модельное время: ${time(last?.measuredAt||data.startedAt)} (Москва)`;
+  const last=data.measurements.at(-1);$('clock').textContent=`Модельное время: ${time(last?.measuredAt||data.startedAt)} (Москва)`;
   controls();renderMeasurements();if(data.error)message(data.error);
 }
 function renderMeasurements(){if(!source||!selected)return;const same=source.roomId===selected;
@@ -101,7 +111,7 @@ function renderMeasurements(){if(!source||!selected)return;const same=source.roo
   $('settings-info').textContent=same?`Период ${source.settings.samplePeriodMs/1000} с | округление ${source.settings.quantumPercent}% | окно ${source.settings.averagingWindow} | буфер ${source.settings.bufferCapacity}`:'';
   const scroll=$('measurements').closest('.table-wrap'), scrollTop=scroll.scrollTop, scrollLeft=scroll.scrollLeft;
   $('measurements').replaceChildren();for(const m of same?source.measurements:[]){const tr=document.createElement('tr');for(const v of [m.sequence,time(m.measuredAt),number(m.sourceValue),number(m.rawValue),number(m.filteredValue)])tr.append(text('td',v));$('measurements').append(tr);}
-  if(!same||!source.measurements.length){const tr=document.createElement('tr'),td=text('td',same?'Измерений пока нет. Откройте «Демонстрация источника» и нажмите «Старт».':'Нет измерений.');td.colSpan=5;tr.append(td);$('measurements').append(tr);}
+  if(!same||!source.measurements.length){const tr=document.createElement('tr'),td=text('td',same?'Измерений пока нет. Откройте «Источник измерений» и нажмите «Старт».':'Нет измерений.');td.colSpan=5;tr.append(td);$('measurements').append(tr);}
   scroll.scrollTop=scrollTop;scroll.scrollLeft=scrollLeft;
 }
 async function reloadSearch(){if(criteria){result=await request(searchPath(criteria));renderSearch();}}
@@ -110,7 +120,7 @@ $('start').onclick=()=>act(()=>sourceAction('start'));
 $('stop').onclick=()=>act(()=>sourceAction('stop'));
 $('reset').onclick=()=>{$('reset-confirm').hidden=false;};
 $('keep-demo').onclick=()=>{$('reset-confirm').hidden=true;};
-$('confirm-reset').onclick=()=>act(async()=>{await sourceAction('reset');$('reset-confirm').hidden=true;selected=null;forcedWarning=false;renderSearch();if(user)await loadBookings();message('Демонстрация сброшена. Исходные брони восстановлены.',true);});
+$('confirm-reset').onclick=()=>act(async()=>{await sourceAction('reset');$('reset-confirm').hidden=true;selected=null;forcedWarning=false;renderSearch();if(user)await loadBookings();message('Исходные измерения и брони восстановлены.',true);});
 async function poll(){if(busy||polling)return;polling=true;const version=revision;
   try{const data=await request('acquisition');if(version!==revision||busy)return;if(disconnected){message();disconnected=false;}renderSource(data);}
   catch(error){if(version===revision&&!busy){disconnected=true;source=null;controls();$('status').textContent='Нет связи с сервером';$('clock').textContent='Модельное время недоступно';if(result){result=null;selected=null;cardsKey='';$('rooms').replaceChildren();$('room-details').hidden=true;$('search-summary').textContent='Не удалось обновить результаты. Повторите поиск.';}message(error.message);}}
