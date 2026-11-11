@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.*;
 import static ru.piaois.rooms.booking.BookingService.*;
 import static ru.piaois.rooms.measurement.AcquisitionService.Presence;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Service
 public class RoomAdviceService {
@@ -15,7 +16,12 @@ public class RoomAdviceService {
     public record Advice(Presence state, String label, Instant measuredAt, Instant receivedAt, Double average) {}
     public record Offer(Room room, Advice currentUse, boolean recommended, String explanation) {}
     public record Search(boolean demonstration, Instant demoTime, Instant start, Instant end, boolean startsNow, List<Offer> rooms) {}
-    public record NowRequest(long roomId, int durationMinutes, int participants, String purpose, boolean acknowledgePresence) {}
+    public record NowRequest(
+            @Schema(description="ID аудитории", example="1") long roomId,
+            @Schema(description="Длительность от 1 до 120 минут", example="30") int durationMinutes,
+            @Schema(description="Число участников", example="10") int participants,
+            @Schema(description="Цель занятия, от 1 до 200 символов", example="Занятие") String purpose,
+            @Schema(description="Подтверждение предупреждения о возможном присутствии", example="false") boolean acknowledgePresence) {}
     public record Confirmation(Booking booking, Advice currentUse, String warning, boolean demonstration) {}
     private static final String WARNING="По данным источника в аудитории могут находиться люди. Проверьте помещение перед началом занятия";
     private Advice advice(Room room, AcquisitionService.Current current) {

@@ -1,7 +1,12 @@
 package ru.piaois.rooms.measurement;
 
-public record AcquisitionSettings(long samplePeriodMs, double quantumPercent,
-                                  int bufferCapacity, int averagingWindow) {
+import io.swagger.v3.oas.annotations.media.Schema;
+
+public record AcquisitionSettings(
+        @Schema(description="Период чтения в миллисекундах, от 100 до 5000", example="1000") long samplePeriodMs,
+        @Schema(description="Шаг округления от 0,1 до 10, должен делить 100 без остатка", example="1") double quantumPercent,
+        @Schema(description="Размер буфера, от 1 до 1000", example="10") int bufferCapacity,
+        @Schema(description="Размер окна среднего, от 1 до размера буфера", example="3") int averagingWindow) {
     public AcquisitionSettings {
         if (samplePeriodMs < 100 || samplePeriodMs > 5000) {
             throw new IllegalArgumentException("Период чтения должен быть от 100 до 5000 мс");

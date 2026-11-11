@@ -6,6 +6,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.*;
 import java.util.*;
 import static ru.piaois.rooms.booking.DemoUsers.*;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Service
 public class BookingService {
@@ -15,7 +16,12 @@ public class BookingService {
                           int participants, String purpose, Status status) {}
     private record Document(long id, String title, String source, String text, Role visibility) {}
     public record SearchResult(long id, String title, String source, String excerpt) {}
-    public record BookingRequest(long roomId, Instant start, Instant end, int participants, String purpose) {}
+    public record BookingRequest(
+            @Schema(description="ID аудитории", example="1") long roomId,
+            @Schema(description="Начало в ISO 8601", example="2026-10-15T09:00:00Z") Instant start,
+            @Schema(description="Окончание в ISO 8601", example="2026-10-15T09:30:00Z") Instant end,
+            @Schema(description="Число участников", example="10") int participants,
+            @Schema(description="Цель занятия, от 1 до 200 символов", example="Занятие") String purpose) {}
     private final List<Room> rooms = List.of(new Room(1,"101",20,true),new Room(2,"102",30,true),new Room(3,"103",10,false));
     private final List<Document> documents = List.of(
         new Document(1,"Правила бронирования","Учебные правила", "Бронирование аудитории допускается на срок до двух часов. Укажите число участников и цель занятия.",Role.READER),
